@@ -63,7 +63,7 @@ class ConversationRepository
     {
         return $this->message->newQuery()
             ->whereRaw("((from_id = $from AND to_id = $to) OR (from_id = $to AND to_id = $from))")
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->with([
                 'from' => function($query) {
                     return $query->select('name', 'id');

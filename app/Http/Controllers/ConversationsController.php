@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMessageRequest;
+use App\Notifications\MessageReceived;
 use App\Repository\ConversationRepository;
 use App\User;
 use Illuminate\Auth\AuthManager;
@@ -24,8 +25,10 @@ class ConversationsController extends Controller
     /**
      * ConversationsController constructor.
      * @param ConversationRepository $conversationRepository
+     * @param AuthManager $auth
      */
     public function __construct(ConversationRepository $conversationRepository, AuthManager $auth){
+        $this->middleware('auth');
         $this->cr = $conversationRepository;
         $this->auth = $auth;
     }
@@ -68,12 +71,12 @@ class ConversationsController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function store (User $user, StoreMessageRequest $request){
-        $this->cr->createMessage(
+        $message = $this->cr->createMessage(
             $request->get('content'),
             $this->auth->user()->id,
             $user->id
         );
-
+        //$user->notify(new MessageReceived($message));
         return redirect(route('conversations.show', ['user' => $user]));
     }
 }
