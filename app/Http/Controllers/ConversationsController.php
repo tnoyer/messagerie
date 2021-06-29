@@ -37,7 +37,8 @@ class ConversationsController extends Controller
         //on récupère tous les utilisateurs sauf l'authentifié
         //$users = User::select('name', 'id')->where('id', '!=', Auth::user()->id)->get();
         return view('conversations/index', [
-            'users' => $this->cr->getConversations($this->auth->user()->id)
+            'users' => $this->cr->getConversations($this->auth->user()->id),
+            'unread' => $this->cr->unreadCount($this->auth->user()->id)
         ]);
     }
 
@@ -46,13 +47,26 @@ class ConversationsController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function show (User $user){
+        $me = $this->auth->user();
+        $messages = $this->cr->getMessagesFor($me->id, $user->id)->paginate(10);
+        $unread = $this->cr->unreadCount($me->id);
+        if(isset($unread[$user->id])){
+            $this->cr->readAllFrom($user->id, $me->id);
+            unset($unread[$user->id]);
+        }
         return view('conversations/show', [
-            'users' => $this->cr->getConversations($this->auth->user()->id),
+            'users' => $this->cr->getConversations($me->id),
             'user' => $user,
-            'messages' => $this->cr->getMessagesFor($this->auth->user()->id, $user->id)->get()
+            'messages' => $messages,
+            'unread' => $unread
         ]);
     }
 
+    /**
+     * @param User $user
+     * @param StoreMessageRequest $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function store (User $user, StoreMessageRequest $request){
         $this->cr->createMessage(
             $request->get('content'),
