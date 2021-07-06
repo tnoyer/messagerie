@@ -37,12 +37,7 @@ class ConversationsController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function index(){
-        //on récupère tous les utilisateurs sauf l'authentifié
-        //$users = User::select('name', 'id')->where('id', '!=', Auth::user()->id)->get();
-        return view('conversations/index', [
-            'users' => $this->cr->getConversations($this->auth->user()->id),
-            'unread' => $this->cr->unreadCount($this->auth->user()->id)
-        ]);
+        return view('conversations/index');
     }
 
     /**
